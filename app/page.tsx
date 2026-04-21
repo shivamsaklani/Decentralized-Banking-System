@@ -14,7 +14,19 @@ import { SiteHeader } from "@/components/bank/site-header"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { productPillars, trustMetrics } from "@/lib/mock-bank-data"
+
+const trustMetrics = [
+  { value: "99.98%", label: "Ledger health", detail: "Near-zero drift between contract state and UI feeds." },
+  { value: "$4.8M+", label: "Visible treasury", detail: "Mock aggregated liquidity across all active vaults." },
+  { value: "0ms", label: "Settlement lag", detail: "Transactions reflect instantly upon block confirmation." },
+]
+
+const productPillars = [
+  { eyebrow: "Monitoring", title: "Live treasury flow", description: "Each action reflects instantly across inflow and outflow ledger cards." },
+  { eyebrow: "Architecture", title: "Contract workspace", description: "Isolate agreements into their own route to maintain deep visibility." },
+  { eyebrow: "Efficiency", title: "Action cards", description: "Lending, deposits, and transfers happen through focused input shells." },
+  { eyebrow: "Mobility", title: "Responsive shell", description: "The entire banking portal is built to be manageable on any device." },
+]
 
 const pillarIcons = [
   LayoutDashboard,

@@ -3,6 +3,7 @@ import Script from "next/script"
 import { IBM_Plex_Mono, Sora } from "next/font/google"
 
 import "./globals.css"
+import { Web3Provider } from "@/lib/web3-context"
 
 const sora = Sora({
   variable: "--font-sora",
@@ -65,7 +66,9 @@ export default function RootLayout({
         <Script id="theme-script" strategy="beforeInteractive">
           {themeScript}
         </Script>
-        {children}
+        <Web3Provider>
+          {children}
+        </Web3Provider>
       </body>
     </html>
   )

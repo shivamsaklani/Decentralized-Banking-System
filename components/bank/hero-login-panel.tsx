@@ -8,18 +8,36 @@ import { motion } from "motion/react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { contractPreview } from "@/lib/mock-bank-data"
+import { ethers } from "ethers"
+import { useWeb3 } from "@/lib/web3-context"
+import { useState } from "react"
 
 export function HeroLoginPanel() {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
+  const { account, user, connectWallet, contract, refreshUser, isConnecting, bankReserve } = useWeb3()
+  const [isRegistering, setIsRegistering] = useState(false)
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const handleConnect = async () => {
+    await connectWallet()
+  }
 
-    startTransition(() => {
+  const handleRegister = async () => {
+    if (!contract || !account) return
+    setIsRegistering(true)
+    try {
+      const tx = await contract.registerUser("Member")
+      await tx.wait()
+      await refreshUser()
       router.push("/dashboard")
-    })
+    } catch (error) {
+      console.error("Registration failed", error)
+    } finally {
+      setIsRegistering(false)
+    }
+  }
+
+  const handleContinue = () => {
+    router.push("/dashboard")
   }
 
   return (
@@ -64,137 +82,89 @@ export function HeroLoginPanel() {
           </div>
         </div>
 
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="wallet-address">
-              Wallet or member ID
-            </label>
-            <Input
-              id="wallet-address"
-              type="text"
-              defaultValue="0x7C4A...91F2"
-              className="h-12 rounded-2xl border-border/80 bg-background/75 px-4"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="member-email">
-              Email address
-            </label>
-            <Input
-              id="member-email"
-              type="email"
-              defaultValue="member@astravault.bank"
-              className="h-12 rounded-2xl border-border/80 bg-background/75 px-4"
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-[1fr_160px]">
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="access-code">
-                Access phrase
-              </label>
-              <Input
-                id="access-code"
-                type="password"
-                defaultValue="vault-prototype"
-                className="h-12 rounded-2xl border-border/80 bg-background/75 px-4"
-              />
+        <div className="mt-6 space-y-4">
+          {!account ? (
+            <Button
+              onClick={handleConnect}
+              disabled={isConnecting}
+              size="lg"
+              className="h-12 w-full rounded-2xl text-sm"
+            >
+              {isConnecting ? "Connecting Wallet..." : "Connect Web3 Wallet"}
+              <ArrowRight className="size-4" />
+            </Button>
+          ) : !user?.isRegistered ? (
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3">
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  Wallet connected: {account.slice(0, 6)}...{account.slice(-4)}
+                </p>
+                <p className="text-xs text-amber-600/80 dark:text-amber-400/80 mt-1">
+                  You are not registered in the Decentralized Bank.
+                </p>
+              </div>
+              <Button
+                onClick={handleRegister}
+                disabled={isRegistering}
+                size="lg"
+                className="h-12 w-full rounded-2xl text-sm"
+              >
+                {isRegistering ? "Registering on-chain..." : "Register Account"}
+                <ArrowRight className="size-4" />
+              </Button>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="two-factor">
-                2FA
-              </label>
-              <Input
-                id="two-factor"
-                type="text"
-                defaultValue="480221"
-                className="h-12 rounded-2xl border-border/80 bg-background/75 px-4"
-              />
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3">
+                <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">
+                  Welcome back, {user.name}!
+                </p>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
+                  Wallet: {account.slice(0, 6)}...{account.slice(-4)}
+                </p>
+              </div>
+              <Button
+                onClick={handleContinue}
+                size="lg"
+                className="h-12 w-full rounded-2xl text-sm"
+              >
+                Go to Dashboard
+                <ArrowRight className="size-4" />
+              </Button>
             </div>
-          </div>
-
-          <Button
-            type="submit"
-            size="lg"
-            className="h-12 w-full rounded-2xl text-sm"
-          >
-            {isPending ? "Opening dashboard..." : "Authenticate and continue"}
-            <ArrowRight className="size-4" />
-          </Button>
-        </form>
+          )}
+        </div>
 
         <div className="mt-5 grid gap-3 rounded-[1.75rem] border border-border/70 bg-background/65 p-4 sm:grid-cols-2">
           <div className="rounded-[1.4rem] border border-border/70 bg-background/70 p-4">
             <div className="flex items-center gap-2 text-sm font-medium">
               <Wallet2 className="size-4 text-primary" />
-              Wallet trust state
+              Total Bank Reserve
             </div>
-            <p className="mt-3 text-2xl font-semibold">$4.82M</p>
+            <p className="mt-3 text-2xl font-semibold">{ethers.formatEther(bankReserve)} ETH</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Total visible funds across liquid reserves and live contracts.
+              Total liquidity currently secured by the smart contract.
             </p>
           </div>
 
           <div className="rounded-[1.4rem] border border-border/70 bg-background/70 p-4">
             <div className="flex items-center gap-2 text-sm font-medium">
               <LockKeyhole className="size-4 text-primary" />
-              Current access level
+              Member status
             </div>
-            <p className="mt-3 text-2xl font-semibold">Tier 03</p>
+            <p className="mt-3 text-2xl font-semibold">{user?.isRegistered ? "Verified" : "Guest"}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Mock private-banking privileges with contract and liquidity controls.
+              {user?.isRegistered ? "You have full access to bank facilities." : "Connect and register to start banking."}
             </p>
           </div>
         </div>
 
         <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
           <ShieldCheck className="size-4 text-primary" />
-          UI prototype only. This demo routes into a mock dashboard without a live backend.
+          Full-stack integrated. This dashboard connects directly to the Decentralized Bank smart contract.
         </p>
       </motion.div>
 
-      <motion.div
-        className="panel-surface absolute -bottom-3 left-4 right-4 hidden rounded-[1.75rem] p-4 lg:block"
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, delay: 0.15, ease: "easeOut" }}
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-mono text-[0.68rem] uppercase tracking-[0.3em] text-primary/80">
-              Live vault preview
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Contracts that will appear inside the user dashboard.
-            </p>
-          </div>
-          <Badge variant="outline" className="rounded-full px-3 py-1">
-            Updated 2m ago
-          </Badge>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {contractPreview.map((contract) => (
-            <div
-              key={contract.name}
-              className="rounded-[1.4rem] border border-border/70 bg-background/70 p-4"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium">{contract.name}</p>
-                <Badge variant="secondary" className="rounded-full px-2.5 py-1">
-                  {contract.status}
-                </Badge>
-              </div>
-              <p className="mt-3 text-xl font-semibold">{contract.tvl}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Network: {contract.chain}
-              </p>
-            </div>
-          ))}
-        </div>
-      </motion.div>
     </div>
   )
 }

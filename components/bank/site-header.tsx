@@ -7,7 +7,12 @@ import { AnimatePresence, motion } from "motion/react"
 
 import { buttonVariants, Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { landingNavItems } from "@/lib/mock-bank-data"
+
+const landingNavItems = [
+  { label: "Dashboard", href: "/dashboard", description: "Overview of your funds." },
+  { label: "Contracts", href: "/contracts", description: "Active agreements." },
+  { label: "Lending", href: "/lending", description: "Deposit or borrow." },
+]
 
 import { AppLogo } from "./app-logo"
 import { ThemeToggle } from "./theme-toggle"
