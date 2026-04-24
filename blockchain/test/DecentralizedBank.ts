@@ -234,14 +234,57 @@ describe("DecentralizedBank", function () {
       // User deposits extra 0.2 ether to comfortably cover interest and any extra time
       await bank.connect(user1).deposit({ value: ethers.parseEther("0.2") });
       
-      const tx = await bank.connect(user1).repayLoan();
-      const receipt = await tx.wait();
+      const tx = await bank.connect(user1).repayLoan(loanAmount + interest);
+      await tx.wait();
       
       const userData = await bank.users(user1.address);
-      expect(userData.loanAmount).to.equal(0);
-      // User's balance will have some leftover from the 0.2 deposit (e.g. 0.1)
-      expect(userData.balance).to.be.gt(0);
-      expect(userData.balance).to.be.lt(ethers.parseEther("0.11"));
+      // loanAmount should be 0 or very close to it (if extra interest accrued in the tx block)
+      expect(userData.loanAmount).to.be.closeTo(0, 1000000000000); 
+    });
+
+    it("Should allow partial repayment and calculate interest on remaining principal", async function () {
+      const { bank, admin, user1 } = await loadFixture(deployBankFixture);
+      await bank.connect(user1).registerUser("Alice");
+      await bank.connect(admin).fundBank({ value: ethers.parseEther("100") });
+      
+      const loanAmount = ethers.parseEther("10");
+      const interestRate = 10; // 10%
+      
+      const nonce = await bank.nonces(user1.address);
+      const messageHash = ethers.solidityPackedKeccak256(
+        ["address", "uint256", "uint256", "uint256"],
+        [user1.address, loanAmount, interestRate, nonce]
+      );
+      const signature = await admin.signMessage(ethers.getBytes(messageHash));
+      
+      await bank.connect(user1).takeLoan(loanAmount, interestRate, signature);
+      
+      // Advance time by 1 year
+      await time.increase(365 * 24 * 60 * 60);
+      
+      // Interest is 1 ETH. Total due is 11 ETH.
+      const interest = await bank.calculateInterest(user1.address);
+      expect(interest).to.be.gte(ethers.parseEther("1"));
+      
+      // Repay 5 ETH (part of interest and part of principal)
+      // Since interest is ~1 ETH, ~4 ETH goes to principal. Remaining principal should be ~6 ETH.
+      const partialRepayment = ethers.parseEther("5");
+      await bank.connect(user1).deposit({ value: ethers.parseEther("5") });
+      
+      // We don't use .withArgs here because of the timing precision
+      const repayTx = await bank.connect(user1).repayLoan(partialRepayment);
+      await expect(repayTx).to.emit(bank, "LoanRepaid");
+        
+      const userData = await bank.users(user1.address);
+      // loanAmount should be close to 6 ETH
+      expect(userData.loanAmount).to.be.closeTo(ethers.parseEther("6"), 1000000000000);
+      
+      // Advance time by another year
+      await time.increase(365 * 24 * 60 * 60);
+      
+      // New interest should be close to 6 * 10% = 0.6 ETH
+      const newInterest = await bank.calculateInterest(user1.address);
+      expect(newInterest).to.be.closeTo(ethers.parseEther("0.6"), 1000000000000);
     });
   });
 });

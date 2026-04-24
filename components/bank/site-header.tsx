@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils"
 
 const landingNavItems = [
   { label: "Dashboard", href: "/dashboard", description: "Overview of your funds." },
-  { label: "Contracts", href: "/contracts", description: "Active agreements." },
-  { label: "Lending", href: "/lending", description: "Deposit or borrow." },
+  { label: "Deposit", href: "/deposit", description: "Earn yield on your ETH." },
+  { label: "Borrow", href: "/borrow", description: "Access instant liquidity." },
 ]
 
 import { AppLogo } from "./app-logo"

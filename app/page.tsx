@@ -73,41 +73,46 @@ export default function Home() {
     <div className="pb-24">
       <SiteHeader />
 
-      <main>
-        <section className="shell-container pt-8 sm:pt-12 lg:pt-16">
-          <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-            <div>
-              <Badge className="rounded-full px-3 py-1 text-xs" variant="secondary">
-                Next.js banking UI concept
+      <main className="relative overflow-hidden">
+        {/* Animated Background Orbs */}
+        <div className="absolute left-[-10%] top-[-10%] size-[500px] rounded-full bg-primary/5 blur-[120px] animate-pulse" />
+        <div className="absolute right-[-5%] top-[20%] size-[400px] rounded-full bg-emerald-500/5 blur-[100px] animate-pulse [animation-delay:2s]" />
+
+        <section className="shell-container relative z-10 pt-12 sm:pt-16 lg:pt-20">
+          <div className="grid gap-16 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+            <div className="flex flex-col items-start">
+              <Badge className="rounded-full bg-primary/10 px-4 py-1.5 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-primary border-primary/20" variant="secondary">
+                Institutional Grade DeFi
               </Badge>
-              <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[1.02] tracking-tight text-balance sm:text-6xl lg:text-7xl">
-                Decentralized banking with a calm, premium member experience.
+              <h1 className="mt-8 text-5xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-7xl lg:text-8xl">
+                Banking <br /> 
+                <span className="text-primary">Reinvented.</span>
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
-                This UI prototype gives each user a dedicated dashboard to monitor
-                funds, smart contracts, bank inflows and outflows, and lending
-                actions from a responsive interface built for desktop and mobile.
+              <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground/90 sm:text-xl">
+                The most secure way to manage, deposit, and borrow assets. 
+                Experience a premium decentralized banking interface built 
+                on the Ethereum Sepolia network.
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
                 <Link
                   href="/dashboard"
                   className={cn(
                     buttonVariants({ size: "lg" }),
-                    "h-12 rounded-2xl px-5"
+                    "group h-14 rounded-2xl px-8 bg-primary text-base font-bold shadow-xl shadow-primary/20 transition-all hover:scale-[1.05]"
                   )}
                 >
-                  Open dashboard preview
-                  <ArrowRight className="size-4" />
+                  Launch Dashboard
+                  <ArrowRight className="ml-2 size-5 transition-transform group-hover:translate-x-1" />
                 </Link>
                 <Link
                   href="#overview"
                   className={cn(
                     buttonVariants({ variant: "outline", size: "lg" }),
-                    "h-12 rounded-2xl border-border/80 bg-background/70 px-5 backdrop-blur-md"
+                    "h-14 rounded-2xl border-border/60 bg-background/40 px-8 backdrop-blur-md text-base font-bold transition-all hover:bg-background/60"
                   )}
                 >
-                  Explore the interface
+                  Explore Features
                 </Link>
               </div>
 

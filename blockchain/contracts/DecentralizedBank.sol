@@ -29,7 +29,7 @@ contract DecentralizedBank {
     event Withdraw(address indexed user, uint256 amount);
     event Transfer(address indexed from, address indexed to, uint256 amount);
     event LoanTaken(address indexed user, uint256 amount, uint256 interestRate);
-    event LoanRepaid(address indexed user, uint256 amount, uint256 interestPaid);
+    event LoanRepaid(address indexed user, uint256 principalPaid, uint256 interestPaid, uint256 remainingPrincipal);
 
     modifier onlyRegistered() {
         require(users[msg.sender].isRegistered, "User not registered");
@@ -63,6 +63,7 @@ contract DecentralizedBank {
     function deposit() external payable onlyRegistered {
         require(msg.value > 0, "Deposit amount must be > 0");
         users[msg.sender].balance += msg.value;
+        totalBankReserve += msg.value;
         emit Deposit(msg.sender, msg.value);
     }
 
@@ -70,6 +71,7 @@ contract DecentralizedBank {
     function withdraw(uint256 _amount) external onlyRegistered {
         require(users[msg.sender].balance >= _amount, "Insufficient balance");
         users[msg.sender].balance -= _amount;
+        totalBankReserve -= _amount;
         (bool success, ) = msg.sender.call{value: _amount}("");
         require(success, "Transfer failed");
         emit Withdraw(msg.sender, _amount);
@@ -101,6 +103,7 @@ contract DecentralizedBank {
         nonces[_user]++;
 
         users[_user].balance -= _amount;
+        totalBankReserve -= _amount;
         
         (bool success, ) = msg.sender.call{value: _amount}("");
         require(success, "Transfer failed");
@@ -129,6 +132,8 @@ contract DecentralizedBank {
         
         // Loan is added to user's bank balance, they can withdraw or transfer it
         users[msg.sender].balance += _amount;
+        // Note: totalBankReserve doesn't decrease yet because funds are still in the contract (in user's balance)
+        // It will decrease when the user calls withdraw().
 
         emit LoanTaken(msg.sender, _amount, _interestRate);
     }
@@ -145,26 +150,41 @@ contract DecentralizedBank {
         return interest;
     }
 
-    // 6. Repay Loan
-    function repayLoan() external onlyRegistered {
+    // 6. Repay Loan (Full or Partial)
+    function repayLoan(uint256 _amount) external onlyRegistered {
         require(users[msg.sender].loanAmount > 0, "No active loan");
+        require(_amount > 0, "Repayment amount must be > 0");
+
         uint256 interest = calculateInterest(msg.sender);
         uint256 totalDue = users[msg.sender].loanAmount + interest;
 
-        // The user must have enough balance in the bank to repay
-        // They can deposit funds to their balance if they don't have enough
-        require(users[msg.sender].balance >= totalDue, "Insufficient bank balance to repay loan");
+        require(_amount <= totalDue, "Repayment amount exceeds total due");
+        require(users[msg.sender].balance >= _amount, "Insufficient bank balance to repay loan");
 
-        users[msg.sender].balance -= totalDue;
+        users[msg.sender].balance -= _amount;
         
-        uint256 principal = users[msg.sender].loanAmount;
-        users[msg.sender].loanAmount = 0;
-        users[msg.sender].loanTimestamp = 0;
-        users[msg.sender].interestRate = 0;
-        
-        totalBankReserve += interest; // Interest earned by the bank
+        uint256 interestPaid;
+        uint256 principalPaid;
 
-        emit LoanRepaid(msg.sender, principal, interest);
+        if (_amount >= interest) {
+            interestPaid = interest;
+            principalPaid = _amount - interest;
+        } else {
+            interestPaid = _amount;
+            principalPaid = 0;
+        }
+
+        // New principal is total debt minus the repayment
+        users[msg.sender].loanAmount = totalDue - _amount;
+        users[msg.sender].loanTimestamp = block.timestamp;
+        
+        // If loan is fully repaid, reset interest rate
+        if (users[msg.sender].loanAmount == 0) {
+            users[msg.sender].interestRate = 0;
+            users[msg.sender].loanTimestamp = 0;
+        }
+
+        emit LoanRepaid(msg.sender, principalPaid, interestPaid, users[msg.sender].loanAmount);
     }
 
     // Admin function to fund the bank so it has liquidity for loans

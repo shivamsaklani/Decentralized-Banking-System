@@ -9,8 +9,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    // Hardhat Account #0 Private Key (Admin)
-    const adminPrivateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+    // Use the private key from environment variables
+    const adminPrivateKey = process.env.PRIVATE_KEY
+    if (!adminPrivateKey) {
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 })
+    }
     const adminWallet = new ethers.Wallet(adminPrivateKey)
 
     // Construct the message hash exactly as done in Solidity:

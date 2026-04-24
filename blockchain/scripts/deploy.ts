@@ -13,8 +13,8 @@ async function main() {
   console.log(`DecentralizedBank deployed to: ${address}`);
 
   // Fund bank so it can provide loans
-  console.log("Funding bank with 200 ETH for initial liquidity...");
-  const tx = await bank.fundBank({ value: ethers.parseEther("200") });
+  console.log("Funding bank with 0.01 ETH for initial liquidity...");
+  const tx = await bank.fundBank({ value: ethers.parseEther("0.01") });
   await tx.wait();
   console.log("Bank funded successfully!");
 

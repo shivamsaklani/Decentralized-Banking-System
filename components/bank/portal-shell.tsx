@@ -14,11 +14,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { getPortalRoute } from "@/lib/portal-navigation"
 import { useWeb3 } from "@/lib/web3-context"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export function PortalShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const currentRoute = getPortalRoute(pathname)
-  const { user, account } = useWeb3()
+  const { user, account, isConnecting } = useWeb3()
+
+  useEffect(() => {
+    // If not connecting and no account is found, redirect to home
+    if (!isConnecting && !account) {
+      router.push("/")
+    }
+  }, [account, isConnecting, router])
   const [menuState, setMenuState] = useState({
     open: false,
     pathname: "",

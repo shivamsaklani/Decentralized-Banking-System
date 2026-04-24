@@ -4,6 +4,7 @@ import {
   FileLock2,
   HandCoins,
   LayoutDashboard,
+  Wallet2,
 } from "lucide-react"
 
 export type PortalRoute = {
@@ -24,10 +25,10 @@ export const portalRoutes: PortalRoute[] = [
     icon: LayoutDashboard,
     description: "Funds, treasury mix, and protocol health.",
     eyebrow: "Member workspace",
-    title: "Aarav Shah • Liquidity Partner",
+    title: "Personal Bank Dashboard",
     subtitle:
-      "Track available funds, current contract exposure, treasury allocation, and member health in one route-first view.",
-    searchPlaceholder: "Search funds, policy signals, or summaries",
+      "Track your active balance, contract exposure, and active loans in a single real-time view.",
+    searchPlaceholder: "Search funds or transaction history",
   },
   {
     label: "Contracts",
@@ -52,15 +53,26 @@ export const portalRoutes: PortalRoute[] = [
     searchPlaceholder: "Search transaction, counterparty, or direction",
   },
   {
-    label: "Lending",
-    href: "/lending",
-    icon: HandCoins,
-    description: "Deposit funds or borrow against collateral.",
-    eyebrow: "Lending workspace",
-    title: "Borrow And Deposit Studio",
+    label: "Deposit",
+    href: "/deposit",
+    icon: Wallet2,
+    description: "Deposit funds into the bank vault.",
+    eyebrow: "Deposit workspace",
+    title: "Liquid Assets Studio",
     subtitle:
-      "Preview deposit opportunities, borrowing capacity, and credit guardrails from a dedicated lending interface.",
-    searchPlaceholder: "Search loan lane, deposit rate, or policy term",
+      "Preview deposit opportunities and grow your available capital by funding the decentralized bank.",
+    searchPlaceholder: "Search deposit rate or policy term",
+  },
+  {
+    label: "Borrow",
+    href: "/borrow",
+    icon: HandCoins,
+    description: "Borrow funds against your collateral.",
+    eyebrow: "Borrowing workspace",
+    title: "Credit Capacity Studio",
+    subtitle:
+      "Check your borrowing capacity and manage your active loans from this dedicated interface.",
+    searchPlaceholder: "Search loan lane or credit guardrail",
   },
 ]
 

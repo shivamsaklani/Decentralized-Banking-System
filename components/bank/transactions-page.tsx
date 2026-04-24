@@ -9,7 +9,7 @@ import {
   SectionIntro,
 } from "@/components/bank/portal-primitives"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import { cn, formatUSD } from "@/lib/utils"
 import { useWeb3, TransactionEvent } from "@/lib/web3-context"
 import { ethers } from "ethers"
 
@@ -69,14 +69,17 @@ export function TransactionsPage() {
             badge={`${transactions.length} events`}
           />
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-8 overflow-y-auto pr-2 max-h-[600px] space-y-4 scrollbar-thin scrollbar-thumb-primary/10 hover:scrollbar-thumb-primary/20">
             {isLoading ? (
-              <div className="flex justify-center p-8 text-muted-foreground">
-                <Loader2 className="size-6 animate-spin" />
+              <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
+                <Loader2 className="size-8 animate-spin text-primary" />
+                <p className="mt-4 text-sm font-medium">Fetching on-chain activity...</p>
               </div>
             ) : transactions.length === 0 ? (
-              <div className="rounded-[1.5rem] border border-dashed border-border/70 p-8 text-center text-muted-foreground">
-                No transaction history found on the blockchain.
+              <div className="rounded-[2rem] border border-dashed border-border/70 p-12 text-center">
+                <p className="text-sm font-medium text-muted-foreground">
+                  No transaction history found on the blockchain.
+                </p>
               </div>
             ) : (
               transactions.map((transaction) => {
@@ -85,16 +88,16 @@ export function TransactionsPage() {
                 return (
                   <article
                     key={transaction.id}
-                    className="rounded-[1.5rem] border border-border/70 bg-background/60 p-4"
+                    className="group rounded-[1.8rem] border border-border/40 bg-background/30 p-5 backdrop-blur-md transition-all hover:border-primary/30 hover:bg-background/50"
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div className="flex items-start gap-3">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
                         <div
                           className={cn(
-                            "rounded-2xl p-3",
+                            "rounded-2xl p-3 shadow-sm",
                             isIncoming
-                              ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
-                              : "bg-sky-500/12 text-sky-700 dark:text-sky-300"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
                           )}
                         >
                           {isIncoming ? (
@@ -104,9 +107,9 @@ export function TransactionsPage() {
                           )}
                         </div>
                         <div>
-                          <p className="text-base font-semibold">{transaction.type}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            Smart Contract Interaction
+                          <p className="text-base font-bold tracking-tight">{transaction.type}</p>
+                          <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground/60">
+                            Block {transaction.date.split(" ")[1]}
                           </p>
                         </div>
                       </div>
@@ -114,26 +117,32 @@ export function TransactionsPage() {
                       <div className="text-right">
                         <p
                           className={cn(
-                            "text-lg font-semibold",
+                            "text-lg font-bold tracking-tight",
                             isIncoming
-                              ? "text-emerald-700 dark:text-emerald-300"
-                              : "text-sky-700 dark:text-sky-300"
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-sky-600 dark:text-sky-400"
                           )}
                         >
-                          {ethers.formatEther(transaction.amount)} ETH
+                          {isIncoming ? "+" : "-"}{ethers.formatEther(transaction.amount)} ETH
                         </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {transaction.date}
+                        {transaction.type === "LoanRepaid" && transaction.interestPaid !== undefined && (
+                           <p className="text-[0.7rem] font-bold text-emerald-500 mt-1">
+                            + {ethers.formatEther(transaction.interestPaid)} ETH Interest
+                           </p>
+                        )}
+                        <p className="text-[0.7rem] font-bold text-muted-foreground/50">
+                          {formatUSD(transaction.amount)}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                      <Badge variant="secondary" className="rounded-full px-3 py-1">
-                        Confirmed
-                      </Badge>
-                      <p className="text-sm text-muted-foreground">
-                        Direction: {isIncoming ? "IN" : "OUT"}
+                    <div className="mt-5 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[0.65rem] font-bold uppercase tracking-widest text-emerald-600/80">Confirmed</span>
+                      </div>
+                      <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground/40">
+                        Dir: {isIncoming ? "IN" : "OUT"}
                       </p>
                     </div>
                   </article>

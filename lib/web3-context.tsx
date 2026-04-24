@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react"
 import { ethers } from "ethers"
 import { contractAddress, contractAbi } from "./contract-config"
+import toast from "react-hot-toast"
 
 export type UserDetails = {
   isRegistered: boolean
@@ -17,6 +18,8 @@ export type TransactionEvent = {
   id: string
   type: "Deposit" | "Withdraw" | "LoanTaken" | "LoanRepaid" | "Transfer"
   amount: bigint
+  interestPaid?: bigint
+  remainingPrincipal?: bigint
   date: string
   status: "completed"
 }
@@ -70,7 +73,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       console.error("Error fetching user data:", error)
     }
   }
-  const fetchBankReserve = async (currentContract: ethers.Contract) => {
+  const fetchBankReserve = async (currentContract: ethers.Contract, currentProvider: ethers.Provider | null) => {
     try {
       const reserve = await currentContract.totalBankReserve()
       setBankReserve(reserve)
@@ -102,18 +105,27 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       // Format to our TransactionEvent type
       return allEvents.map((item, index) => {
         let amount = BigInt(0)
+        let interestPaid = undefined
+        let remainingPrincipal = undefined
         
         // Parse the amount from the event args depending on event type
         if (item.type === "Deposit" || item.type === "Withdraw") {
           amount = item.event.args[1] // amount is the 2nd arg
-        } else if (item.type === "LoanTaken" || item.type === "LoanRepaid") {
-          amount = item.event.args[1] // amount/principal is the 2nd arg
+        } else if (item.type === "LoanTaken") {
+          amount = item.event.args[1] // amount is the 2nd arg
+        } else if (item.type === "LoanRepaid") {
+          // New LoanRepaid: (address indexed user, uint256 principalPaid, uint256 interestPaid, uint256 remainingPrincipal)
+          amount = item.event.args[1] // principalPaid
+          interestPaid = item.event.args[2]
+          remainingPrincipal = item.event.args[3]
         }
 
         return {
           id: `${item.event.transactionHash}-${item.event.logIndex}`,
           type: item.type,
           amount,
+          interestPaid,
+          remainingPrincipal,
           date: `Block ${item.event.blockNumber}`, // Since timestamps are slow to fetch per block locally
           status: "completed"
         }
@@ -139,7 +151,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
         setContract(bankContract)
         
         await fetchUser(bankContract, address)
-        await fetchBankReserve(bankContract)
+        await fetchBankReserve(bankContract, browserProvider)
       } else {
         console.warn("MetaMask not found. Falling back to local Hardhat node.")
         // Fallback for local testing (Hardhat Account #1)
@@ -155,11 +167,11 @@ export function Web3Provider({ children }: { children: ReactNode }) {
         setContract(bankContract)
         
         await fetchUser(bankContract, address)
-        await fetchBankReserve(bankContract)
+        await fetchBankReserve(bankContract, localProvider)
       }
     } catch (error) {
       console.error("Failed to connect wallet", error)
-      alert("Failed to connect wallet. Ensure local node is running if using fallback.")
+      toast.error("Failed to connect wallet. Ensure local node is running if using fallback.")
     } finally {
       setIsConnecting(false)
     }
@@ -168,9 +180,27 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   const refreshUser = async () => {
     if (contract && account) {
       await fetchUser(contract, account)
-      await fetchBankReserve(contract)
+      await fetchBankReserve(contract, provider)
     }
   }
+
+  // Auto-connect on mount if MetaMask is already connected
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        const browserProvider = new ethers.BrowserProvider((window as any).ethereum)
+        try {
+          const accounts = await browserProvider.listAccounts()
+          if (accounts.length > 0) {
+            await connectWallet()
+          }
+        } catch (e) {
+          console.warn("Auto-connect failed", e)
+        }
+      }
+    }
+    checkConnection()
+  }, [])
 
   // Handle account change
   useEffect(() => {

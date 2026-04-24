@@ -68,7 +68,10 @@ export interface DecentralizedBankInterface extends Interface {
     functionFragment: "registerUser",
     values: [string]
   ): string;
-  encodeFunctionData(functionFragment: "repayLoan", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "repayLoan",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "takeLoan",
     values: [BigNumberish, BigNumberish, BytesLike]
@@ -138,18 +141,21 @@ export namespace DepositEvent {
 export namespace LoanRepaidEvent {
   export type InputTuple = [
     user: AddressLike,
-    amount: BigNumberish,
-    interestPaid: BigNumberish
+    principalPaid: BigNumberish,
+    interestPaid: BigNumberish,
+    remainingPrincipal: BigNumberish
   ];
   export type OutputTuple = [
     user: string,
-    amount: bigint,
-    interestPaid: bigint
+    principalPaid: bigint,
+    interestPaid: bigint,
+    remainingPrincipal: bigint
   ];
   export interface OutputObject {
     user: string;
-    amount: bigint;
+    principalPaid: bigint;
     interestPaid: bigint;
+    remainingPrincipal: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -288,7 +294,7 @@ export interface DecentralizedBank extends BaseContract {
 
   registerUser: TypedContractMethod<[_name: string], [void], "nonpayable">;
 
-  repayLoan: TypedContractMethod<[], [void], "nonpayable">;
+  repayLoan: TypedContractMethod<[_amount: BigNumberish], [void], "nonpayable">;
 
   takeLoan: TypedContractMethod<
     [_amount: BigNumberish, _interestRate: BigNumberish, _signature: BytesLike],
@@ -358,7 +364,7 @@ export interface DecentralizedBank extends BaseContract {
   ): TypedContractMethod<[_name: string], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "repayLoan"
-  ): TypedContractMethod<[], [void], "nonpayable">;
+  ): TypedContractMethod<[_amount: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "takeLoan"
   ): TypedContractMethod<
@@ -454,7 +460,7 @@ export interface DecentralizedBank extends BaseContract {
       DepositEvent.OutputObject
     >;
 
-    "LoanRepaid(address,uint256,uint256)": TypedContractEvent<
+    "LoanRepaid(address,uint256,uint256,uint256)": TypedContractEvent<
       LoanRepaidEvent.InputTuple,
       LoanRepaidEvent.OutputTuple,
       LoanRepaidEvent.OutputObject
