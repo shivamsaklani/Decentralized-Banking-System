@@ -18,7 +18,7 @@ export function HeroLoginPanel() {
   const [isRegistering, setIsRegistering] = useState(false)
 
   const handleConnect = async () => {
-    await connectWallet()
+    await connectWallet(true)
   }
 
   const handleRegister = async () => {

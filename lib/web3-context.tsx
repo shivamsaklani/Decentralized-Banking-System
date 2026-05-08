@@ -30,7 +30,7 @@ type Web3ContextType = {
   contract: ethers.Contract | null
   user: UserDetails | null
   bankReserve: bigint
-  connectWallet: () => Promise<void>
+  connectWallet: (forceSelection?: boolean) => Promise<void>
   refreshUser: () => Promise<void>
   fetchUserTransactions: () => Promise<TransactionEvent[]>
   isConnecting: boolean
@@ -61,16 +61,19 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   const fetchUser = async (currentContract: ethers.Contract, currentAccount: string) => {
     try {
       const userData = await currentContract.users(currentAccount)
-      setUser({
+      const fetchedUser = {
         isRegistered: userData.isRegistered,
         name: userData.name,
         balance: userData.balance,
         loanAmount: userData.loanAmount,
         loanTimestamp: userData.loanTimestamp,
         interestRate: userData.interestRate,
-      })
+      }
+      setUser(fetchedUser)
+      return fetchedUser
     } catch (error) {
       console.error("Error fetching user data:", error)
+      return null
     }
   }
   const fetchBankReserve = async (currentContract: ethers.Contract, currentProvider: ethers.Provider | null) => {
@@ -135,23 +138,35 @@ export function Web3Provider({ children }: { children: ReactNode }) {
       return []
     }
   }
-  const connectWallet = async () => {
+  const connectWallet = async (forceSelection = false) => {
     setIsConnecting(true)
     try {
       if (typeof window !== "undefined" && (window as any).ethereum) {
         const browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-        await browserProvider.send("eth_requestAccounts", [])
+        
+        if (forceSelection) {
+          try {
+            await browserProvider.send("wallet_requestPermissions", [{ eth_accounts: {} }])
+          } catch (e) {
+            console.warn("User cancelled account selection", e)
+            setIsConnecting(false)
+            return
+          }
+        } else {
+          await browserProvider.send("eth_requestAccounts", [])
+        }
+
         const signer = await browserProvider.getSigner()
         const address = await signer.getAddress()
         
         const bankContract = new ethers.Contract(contractAddress, contractAbi, signer)
         
+        await fetchUser(bankContract, address)
+        await fetchBankReserve(bankContract, browserProvider)
+
         setProvider(browserProvider)
         setAccount(address)
         setContract(bankContract)
-        
-        await fetchUser(bankContract, address)
-        await fetchBankReserve(bankContract, browserProvider)
       } else {
         console.warn("MetaMask not found. Falling back to local Hardhat node.")
         // Fallback for local testing (Hardhat Account #1)
@@ -162,12 +177,12 @@ export function Web3Provider({ children }: { children: ReactNode }) {
         
         const bankContract = new ethers.Contract(contractAddress, contractAbi, localWallet)
         
+        await fetchUser(bankContract, address)
+        await fetchBankReserve(bankContract, localProvider)
+
         setProvider(localProvider)
         setAccount(address)
         setContract(bankContract)
-        
-        await fetchUser(bankContract, address)
-        await fetchBankReserve(bankContract, localProvider)
       }
     } catch (error) {
       console.error("Failed to connect wallet", error)
@@ -184,23 +199,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Auto-connect on mount if MetaMask is already connected
-  useEffect(() => {
-    const checkConnection = async () => {
-      if (typeof window !== "undefined" && (window as any).ethereum) {
-        const browserProvider = new ethers.BrowserProvider((window as any).ethereum)
-        try {
-          const accounts = await browserProvider.listAccounts()
-          if (accounts.length > 0) {
-            await connectWallet()
-          }
-        } catch (e) {
-          console.warn("Auto-connect failed", e)
-        }
-      }
-    }
-    checkConnection()
-  }, [])
+
 
   // Handle account change
   useEffect(() => {

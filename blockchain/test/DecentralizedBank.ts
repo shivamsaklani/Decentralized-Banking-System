@@ -234,7 +234,7 @@ describe("DecentralizedBank", function () {
       // User deposits extra 0.2 ether to comfortably cover interest and any extra time
       await bank.connect(user1).deposit({ value: ethers.parseEther("0.2") });
       
-      const tx = await bank.connect(user1).repayLoan(loanAmount + interest);
+      const tx = await bank.connect(user1).repayLoan({ value: loanAmount + interest });
       await tx.wait();
       
       const userData = await bank.users(user1.address);
@@ -272,7 +272,7 @@ describe("DecentralizedBank", function () {
       await bank.connect(user1).deposit({ value: ethers.parseEther("5") });
       
       // We don't use .withArgs here because of the timing precision
-      const repayTx = await bank.connect(user1).repayLoan(partialRepayment);
+      const repayTx = await bank.connect(user1).repayLoan({ value: partialRepayment });
       await expect(repayTx).to.emit(bank, "LoanRepaid");
         
       const userData = await bank.users(user1.address);
