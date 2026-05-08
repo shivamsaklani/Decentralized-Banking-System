@@ -5,6 +5,7 @@ import {
   HandCoins,
   LayoutDashboard,
   Wallet2,
+  QrCode,
 } from "lucide-react"
 
 export type PortalRoute = {
@@ -73,6 +74,17 @@ export const portalRoutes: PortalRoute[] = [
     subtitle:
       "Check your borrowing capacity and manage your active loans from this dedicated interface.",
     searchPlaceholder: "Search loan lane or credit guardrail",
+  },
+  {
+    label: "Transfer",
+    href: "/transfer",
+    icon: QrCode,
+    description: "Send and receive funds via QR code.",
+    eyebrow: "Transfer workspace",
+    title: "QR Payment Terminal",
+    subtitle:
+      "Instantly move funds between internal bank balances using a secure, on-chain QR code scanner.",
+    searchPlaceholder: "Search recipient or address",
   },
 ]
 

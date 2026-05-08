@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/media/shivamsaklani/Development/finalyearproject/blockchain/contracts/DecentralizedBank.sol": {
-      "lastModificationDate": 1776923545296,
-      "contentHash": "f1f2b73e55247ab378045f014927fa08",
+      "lastModificationDate": 1778243888686,
+      "contentHash": "c657a5b09fad1463d84c83c845d122d5",
       "sourceName": "contracts/DecentralizedBank.sol",
       "solcConfig": {
         "version": "0.8.28",

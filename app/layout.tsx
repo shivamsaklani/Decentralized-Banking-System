@@ -61,9 +61,9 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${sora.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${sora.variable} ${plexMono.variable} h-full antialiased overflow-x-hidden`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col overflow-x-hidden">
         <Script id="theme-script" strategy="beforeInteractive">
           {themeScript}
         </Script>

@@ -63,11 +63,11 @@ export function BorrowPage() {
     const formatted = ethers.formatEther(val)
     const num = parseFloat(formatted)
     
-    // If the value is very small, show more decimals (up to 18 for Wei-level precision)
+    // If the value is very small, show more decimals (up to 8 for UI readability)
     if (num > 0 && num < 0.001) {
       return num.toLocaleString(undefined, { 
         minimumFractionDigits: 2, 
-        maximumFractionDigits: 18 
+        maximumFractionDigits: 8 
       }) + " ETH"
     }
     
@@ -155,12 +155,12 @@ export function BorrowPage() {
       let amountWei
       if (isFull) {
         const interest = await contract.calculateInterest(account)
-        amountWei = user!.loanAmount + interest
+        amountWei = user!.loanAmount + interest + ethers.parseEther("0.0001") // Add dust buffer for mining time
       } else {
         amountWei = ethers.parseEther(repayAmount)
       }
 
-      const tx = await contract.repayLoan(amountWei)
+      const tx = await contract.repayLoan({ value: amountWei })
       toast.loading("Confirming repayment on-chain...", { id: toastId })
       await tx.wait()
       await refreshUser()
@@ -225,7 +225,7 @@ export function BorrowPage() {
                       value={borrowAmount}
                       onChange={(e) => setBorrowAmount(e.target.value)}
                       placeholder="0.00"
-                      className="h-16 rounded-3xl border-border/40 bg-background/40 px-6 font-mono text-xl focus:ring-primary/20"
+                      className="h-16 rounded-3xl border-border/40 bg-background/40 pl-6 pr-16 font-mono text-xl focus:ring-primary/20"
                     />
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 rounded-xl bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
                       ETH
@@ -259,13 +259,13 @@ export function BorrowPage() {
 
               <div className="mt-8 space-y-6">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-3xl bg-background/50 p-6 border border-border/40">
+                  <div className="rounded-3xl bg-background/50 p-6 border border-border/40 min-w-0">
                     <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground/60 mb-1">Principal</p>
-                    <p className="text-xl font-bold text-foreground">{formatEth(user?.loanAmount || BigInt(0))}</p>
+                    <p className="text-xl font-bold text-foreground truncate" title={formatEth(user?.loanAmount || BigInt(0))}>{formatEth(user?.loanAmount || BigInt(0))}</p>
                   </div>
-                  <div className="rounded-3xl bg-background/50 p-6 border border-border/40">
+                  <div className="rounded-3xl bg-background/50 p-6 border border-border/40 min-w-0">
                     <p className="text-[0.65rem] font-bold uppercase tracking-widest text-amber-600/60 mb-1">Accrued Interest</p>
-                    <p className="text-xl font-bold text-amber-600">{formatEth(accruedInterest)}</p>
+                    <p className="text-xl font-bold text-amber-600 truncate" title={formatEth(accruedInterest)}>{formatEth(accruedInterest)}</p>
                   </div>
                 </div>
 
@@ -278,7 +278,7 @@ export function BorrowPage() {
                         value={repayAmount}
                         onChange={(e) => setRepayAmount(e.target.value)}
                         placeholder="0.00"
-                        className="h-16 rounded-3xl border-border/40 bg-background/40 px-6 font-mono text-xl focus:ring-primary/20"
+                        className="h-16 rounded-3xl border-border/40 bg-background/40 pl-6 pr-24 font-mono text-xl focus:ring-primary/20"
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 flex gap-2">
                         <button
@@ -315,25 +315,6 @@ export function BorrowPage() {
                   </div>
                 </div>
 
-                {repaymentHistory.length > 0 && (
-                  <div className="pt-6 border-t border-border/40">
-                    <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground/80 mb-4">Recent Repayments</p>
-                    <div className="space-y-3">
-                      {repaymentHistory.slice(0, 3).map((tx) => (
-                        <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl bg-background/30 border border-border/20 text-xs">
-                          <div className="flex flex-col gap-1">
-                            <span className="font-bold text-foreground">Principal: {formatEth(tx.amount)}</span>
-                            <span className="text-muted-foreground/60">{tx.date}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="font-bold text-emerald-500">Interest: {formatEth(tx.interestPaid || BigInt(0))}</span>
-                            <p className="text-[0.6rem] text-muted-foreground/40 mt-1 uppercase">Remaining: {formatEth(tx.remainingPrincipal || BigInt(0))}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </article>
           )}
@@ -367,6 +348,30 @@ export function BorrowPage() {
               </p>
             </div>
           </article>
+
+          {repaymentHistory.length > 0 && (
+            <article className="panel-surface rounded-[2.5rem] border border-border/50 bg-card/20 p-8 backdrop-blur-xl">
+              <SectionIntro
+                eyebrow="History"
+                title="Recent Repayments"
+                description="Your most recent loan repayments and interest paid."
+              />
+              <div className="mt-8 space-y-3">
+                {repaymentHistory.slice(0, 4).map((tx) => (
+                  <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl bg-background/30 border border-border/20 text-xs">
+                    <div className="flex flex-col gap-1">
+                      <span className="font-bold text-foreground">Principal: {formatEth(tx.amount)}</span>
+                      <span className="text-muted-foreground/60">{tx.date}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-emerald-500">Interest: {formatEth(tx.interestPaid || BigInt(0))}</span>
+                      <p className="text-[0.6rem] text-muted-foreground/40 mt-1 uppercase">Remaining: {formatEth(tx.remainingPrincipal || BigInt(0))}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </article>
+          )}
         </motion.section>
       </div>
     </div>

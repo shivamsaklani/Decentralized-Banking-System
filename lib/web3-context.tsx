@@ -121,7 +121,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
         }
 
         return {
-          id: `${item.event.transactionHash}-${item.event.logIndex}`,
+          id: `${item.event.transactionHash}-${item.event.index}`,
           type: item.type,
           amount,
           interestPaid,

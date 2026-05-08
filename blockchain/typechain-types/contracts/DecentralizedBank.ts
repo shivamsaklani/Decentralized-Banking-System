@@ -68,10 +68,7 @@ export interface DecentralizedBankInterface extends Interface {
     functionFragment: "registerUser",
     values: [string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "repayLoan",
-    values: [BigNumberish]
-  ): string;
+  encodeFunctionData(functionFragment: "repayLoan", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "takeLoan",
     values: [BigNumberish, BigNumberish, BytesLike]
@@ -294,7 +291,7 @@ export interface DecentralizedBank extends BaseContract {
 
   registerUser: TypedContractMethod<[_name: string], [void], "nonpayable">;
 
-  repayLoan: TypedContractMethod<[_amount: BigNumberish], [void], "nonpayable">;
+  repayLoan: TypedContractMethod<[], [void], "payable">;
 
   takeLoan: TypedContractMethod<
     [_amount: BigNumberish, _interestRate: BigNumberish, _signature: BytesLike],
@@ -364,7 +361,7 @@ export interface DecentralizedBank extends BaseContract {
   ): TypedContractMethod<[_name: string], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "repayLoan"
-  ): TypedContractMethod<[_amount: BigNumberish], [void], "nonpayable">;
+  ): TypedContractMethod<[], [void], "payable">;
   getFunction(
     nameOrSignature: "takeLoan"
   ): TypedContractMethod<

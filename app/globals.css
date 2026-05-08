@@ -119,11 +119,11 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/50 box-border;
   }
 
   html {
-    @apply h-full font-sans scroll-smooth;
+    @apply h-full font-sans scroll-smooth overflow-x-hidden;
   }
 
   body {
@@ -139,6 +139,31 @@
     background: rgba(20, 184, 166, 0.22);
     color: var(--foreground);
   }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.799);
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(4, 191, 169, 0.3);
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(20, 184, 166, 0.3) rgba(20, 184, 166, 0.05);
+  }
 }
 
 .dark body {
@@ -150,7 +175,7 @@
 
 @layer components {
   .shell-container {
-    @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8 box-border;
   }
 
   .panel-surface {
@@ -162,19 +187,15 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.1),
-      transparent 58%
-    );
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.1),
+        transparent 58%);
   }
 
   .dark .panel-surface::before {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.05),
-      transparent 58%
-    );
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.05),
+        transparent 58%);
   }
 
   .soft-grid {

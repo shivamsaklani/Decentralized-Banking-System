@@ -73,7 +73,7 @@ export function TransactionsPage() {
             {isLoading ? (
               <div className="flex flex-col items-center justify-center p-12 text-muted-foreground">
                 <Loader2 className="size-8 animate-spin text-primary" />
-                <p className="mt-4 text-sm font-medium">Fetching on-chain activity...</p>
+                <p className="mt-4 text-sm font-medium tracking-tight">Fetching on-chain activity...</p>
               </div>
             ) : transactions.length === 0 ? (
               <div className="rounded-[2rem] border border-dashed border-border/70 p-12 text-center">
@@ -82,22 +82,25 @@ export function TransactionsPage() {
                 </p>
               </div>
             ) : (
-              transactions.map((transaction) => {
-                const isIncoming = transaction.type === "Deposit" || transaction.type === "LoanTaken"
+              <div className="flex flex-col gap-1">
+                {transactions.map((transaction, index) => {
+                  const isIncoming = transaction.type === "Deposit" || transaction.type === "LoanTaken"
 
-                return (
-                  <article
-                    key={transaction.id}
-                    className="group rounded-[1.8rem] border border-border/40 bg-background/30 p-5 backdrop-blur-md transition-all hover:border-primary/30 hover:bg-background/50"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
+                  return (
+                    <motion.div
+                      key={transaction.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="group relative flex items-center justify-between p-4 sm:p-5 rounded-[1.4rem] hover:bg-muted/40 transition-colors border border-transparent hover:border-border/50"
+                    >
+                      <div className="flex items-center gap-4 sm:gap-5">
                         <div
                           className={cn(
-                            "rounded-2xl p-3 shadow-sm",
+                            "flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm border",
                             isIncoming
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                              : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
+                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
+                              : "bg-foreground/5 border-foreground/10 text-foreground/70 group-hover:text-foreground transition-colors"
                           )}
                         >
                           {isIncoming ? (
@@ -106,48 +109,44 @@ export function TransactionsPage() {
                             <ArrowUpRight className="size-5" />
                           )}
                         </div>
-                        <div>
-                          <p className="text-base font-bold tracking-tight">{transaction.type}</p>
-                          <p className="text-[0.7rem] font-bold uppercase tracking-wider text-muted-foreground/60">
-                            Block {transaction.date.split(" ")[1]}
-                          </p>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-bold tracking-wide text-foreground">
+                            {transaction.type}
+                          </span>
+                          <div className="flex items-center gap-2 text-[0.65rem] font-medium text-muted-foreground uppercase tracking-wider">
+                            <span className="flex items-center gap-1.5">
+                              <div className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></div> 
+                              Confirmed
+                            </span>
+                            <span className="opacity-40">•</span>
+                            <span>Block {transaction.date.split(" ")[1]}</span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <p
+                      <div className="flex flex-col items-end gap-1 text-right">
+                        <span
                           className={cn(
-                            "text-lg font-bold tracking-tight",
-                            isIncoming
-                              ? "text-emerald-600 dark:text-emerald-400"
-                              : "text-sky-600 dark:text-sky-400"
+                            "text-base font-extrabold tracking-tight",
+                            isIncoming ? "text-emerald-500" : "text-foreground"
                           )}
                         >
                           {isIncoming ? "+" : "-"}{ethers.formatEther(transaction.amount)} ETH
-                        </p>
-                        {transaction.type === "LoanRepaid" && transaction.interestPaid !== undefined && (
-                           <p className="text-[0.7rem] font-bold text-emerald-500 mt-1">
+                        </span>
+                        {transaction.type === "LoanRepaid" && transaction.interestPaid !== undefined ? (
+                          <span className="text-[0.65rem] font-bold text-rose-500/80 uppercase tracking-wider">
                             + {ethers.formatEther(transaction.interestPaid)} ETH Interest
-                           </p>
+                          </span>
+                        ) : (
+                          <span className="text-[0.65rem] font-bold text-muted-foreground/50 uppercase tracking-wider">
+                            {formatUSD(transaction.amount)}
+                          </span>
                         )}
-                        <p className="text-[0.7rem] font-bold text-muted-foreground/50">
-                          {formatUSD(transaction.amount)}
-                        </p>
                       </div>
-                    </div>
-
-                    <div className="mt-5 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[0.65rem] font-bold uppercase tracking-widest text-emerald-600/80">Confirmed</span>
-                      </div>
-                      <p className="text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground/40">
-                        Dir: {isIncoming ? "IN" : "OUT"}
-                      </p>
-                    </div>
-                  </article>
-                )
-              })
+                    </motion.div>
+                  )
+                })}
+              </div>
             )}
           </div>
         </motion.section>

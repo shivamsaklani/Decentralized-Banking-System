@@ -151,31 +151,36 @@ contract DecentralizedBank {
     }
 
     // 6. Repay Loan (Full or Partial)
-    function repayLoan(uint256 _amount) external onlyRegistered {
+    function repayLoan() external payable onlyRegistered {
         require(users[msg.sender].loanAmount > 0, "No active loan");
-        require(_amount > 0, "Repayment amount must be > 0");
+        require(msg.value > 0, "Repayment amount must be > 0");
 
         uint256 interest = calculateInterest(msg.sender);
         uint256 totalDue = users[msg.sender].loanAmount + interest;
 
-        require(_amount <= totalDue, "Repayment amount exceeds total due");
-        require(users[msg.sender].balance >= _amount, "Insufficient bank balance to repay loan");
+        uint256 actualRepayment = msg.value;
+        if (msg.value > totalDue) {
+            actualRepayment = totalDue;
+            // Refund the excess dust to their internal balance
+            users[msg.sender].balance += (msg.value - totalDue);
+        }
 
-        users[msg.sender].balance -= _amount;
+        // The bank receives the actual repayment amount
+        totalBankReserve += actualRepayment;
         
         uint256 interestPaid;
         uint256 principalPaid;
 
-        if (_amount >= interest) {
+        if (actualRepayment >= interest) {
             interestPaid = interest;
-            principalPaid = _amount - interest;
+            principalPaid = actualRepayment - interest;
         } else {
-            interestPaid = _amount;
+            interestPaid = actualRepayment;
             principalPaid = 0;
         }
 
         // New principal is total debt minus the repayment
-        users[msg.sender].loanAmount = totalDue - _amount;
+        users[msg.sender].loanAmount = totalDue - actualRepayment;
         users[msg.sender].loanTimestamp = block.timestamp;
         
         // If loan is fully repaid, reset interest rate
