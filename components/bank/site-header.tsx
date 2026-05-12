@@ -8,12 +8,6 @@ import { AnimatePresence, motion } from "motion/react"
 import { buttonVariants, Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-const landingNavItems = [
-  { label: "Dashboard", href: "/dashboard", description: "Overview of your funds." },
-  { label: "Deposit", href: "/deposit", description: "Earn yield on your ETH." },
-  { label: "Borrow", href: "/borrow", description: "Access instant liquidity." },
-]
-
 import { AppLogo } from "./app-logo"
 import { ThemeToggle } from "./theme-toggle"
 
@@ -25,19 +19,6 @@ export function SiteHeader() {
       <header className="sticky top-0 z-40 shell-container pt-4 sm:pt-5">
         <div className="panel-surface flex items-center justify-between gap-3 rounded-[1.75rem] px-4 py-3 sm:px-5">
           <AppLogo />
-
-          <nav className="hidden items-center gap-2 lg:flex">
-            {landingNavItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-2xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
           <div className="flex items-center gap-2">
             <ThemeToggle className="hidden sm:inline-flex" />
             <Link
@@ -96,22 +77,6 @@ export function SiteHeader() {
                   >
                     <X className="size-4" />
                   </Button>
-                </div>
-
-                <div className="mt-8 space-y-2">
-                  {landingNavItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="block rounded-3xl border border-border/70 bg-background/60 px-4 py-4"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <p className="text-sm font-medium">{item.label}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {item.description}
-                      </p>
-                    </Link>
-                  ))}
                 </div>
 
                 <div className="mt-auto space-y-3">

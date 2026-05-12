@@ -1,0 +1,30 @@
+Retrieving project…
+Deploying shivamsaklanis-projects/astravault
+Uploading [--------------------] (0.0B/67B)
+Uploading [====================] (67.0B/67B)
+Inspect: https://vercel.com/shivamsaklanis-projects/astravault/Htx4vPRMQG2nNjCwDL5Hv41RHTTG [9s]
+Production: https://astravault-h3ao0mg24-shivamsaklanis-projects.vercel.app [9s]
+https://astravault-h3ao0mg24-shivamsaklanis-projects.vercel.appBuilding...
+Building...
+Building: Running build in Washington, D.C., USA (East) – iad1
+Building: Build machine configuration: 2 cores, 8 GB
+Building: Retrieving list of deployment files...
+Building: Downloading 118 deployment files...
+Building: Restored build cache from previous deployment (B3vwLpZmyeu8UcehMBq5YFMmrtWY)
+Building: Running "vercel build"
+Building: Vercel CLI 53.2.0
+Building: Installing dependencies...
+Building: up to date in 3s
+Building: 239 packages are looking for funding
+Building: run `npm fund` for details
+Building: Detected Next.js version: 16.2.4
+Building: Running "npm run build"
+Building: > finalyearproject@0.1.0 build
+Building: > next build
+Building: Applying modifyConfig from Vercel
+Building: ▲ Next.js 16.2.4 (Turbopack)
+Building: - Environments: .env
+Building: Creating an optimized production build ...
+Building: ✓ Compiled successfully in 17.8s
+Building: Running TypeScript ...
+Error: Command "npm run build" exited with 1
